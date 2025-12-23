@@ -85,7 +85,7 @@ public class User {
         this.passaword = passaword;
     }
 
-    public List<Order> getOrders() {
+    public List<Order> getOrders() { //Apenas get(Nunca vai ser trocada um lista !)
         return orders;
     }
 
