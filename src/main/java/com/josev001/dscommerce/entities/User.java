@@ -2,12 +2,11 @@ package com.josev001.dscommerce.entities;
 
 import jakarta.persistence.*;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 @Entity
 @Table(name = "tb_user")
 public class User {
@@ -16,7 +15,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @Column(unique = true)
     private String email;
+
     private String phone;
     private LocalDate birthDate;
     private String passaword;
@@ -24,7 +26,7 @@ public class User {
     @OneToMany(mappedBy = "client")
     private List<Order> orders = new ArrayList<>();
 
-    public User(){
+    public User() {
 
     }
 
