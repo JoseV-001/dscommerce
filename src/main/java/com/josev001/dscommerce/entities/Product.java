@@ -2,7 +2,6 @@ package com.josev001.dscommerce.entities;
 
 import jakarta.persistence.*;
 
-import javax.print.attribute.standard.OrientationRequested;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -93,7 +92,7 @@ public class Product {
         return items;
     }
 
-    public List<Order> getOrders(){
+    public List<Order> getOrders() {
         return items.stream().map(x -> x.getOrder()).toList();
     }
 
