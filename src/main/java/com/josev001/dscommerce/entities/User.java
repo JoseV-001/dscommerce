@@ -15,16 +15,12 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
 
     @Column(unique = true)
     private String email;
-
     private String phone;
-
     private LocalDate birthDate;
-
     private String password;
 
     @OneToMany(mappedBy = "client")
