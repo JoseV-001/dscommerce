@@ -1,7 +1,6 @@
 package com.josev001.dscommerce.dto;
 
 import com.josev001.dscommerce.entities.User;
-import jakarta.persistence.Column;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDate;
