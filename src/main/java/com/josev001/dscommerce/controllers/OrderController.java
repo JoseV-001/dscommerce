@@ -21,7 +21,7 @@ public class OrderController {
     @Autowired
     private OrderService service;
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")//so o admin pode puxar
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLIENT')") // Admin acessa tudo; Client acessa apenas os próprios pedidos
     @GetMapping(value = "/{id}")
     public ResponseEntity<OrderDTO> findById(@PathVariable Long id) {
         OrderDTO dto = service.findById(id);
