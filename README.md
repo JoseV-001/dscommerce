@@ -1,5 +1,3 @@
-Aqui está o README atualizado, com a seção de tecnologias perfeitamente alinhada às versões e dependências declaradas no seu `pom.xml` (Java 21, Spring Boot 3.4.4, OAuth2, testes, etc.).
-
 ---
 
 # DSCommerce API
