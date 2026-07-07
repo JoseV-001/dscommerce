@@ -38,46 +38,54 @@ O projeto segue o padrão de arquitetura em camadas (N-Tier Architecture), que f
 * Spring Security
 * Spring Security OAuth2 (Authorization Server & Resource Server)
 * Bean Validation (Hibernate Validator)
-* H2 Database (Banco de dados em memória para testes)
+* PostgreSQL (Banco de dados principal de desenvolvimento)
+* Docker / Docker Compose
 * Maven
 
 **Testes:**
 
 * Spring Boot Starter Test (JUnit 5, Mockito)
 * Spring Security Test
+* H2 Database (Banco de dados em memória para ambiente de testes)
 
 ## Estrutura do projeto
 
 Abaixo está a representação da arquitetura de diretórios do sistema:
 
 ```text
-com.josev001.dscommerce
-├── config/
-│   ├── customgrant/         # Implementação customizada do Password Grant para OAuth2
-│   ├── AuthorizationServerConfig.java
-│   └── ResourceServerConfig.java
-├── controllers/
-│   ├── handlers/            # Interceptadores globais de erro (ControllerAdvice)
-│   ├── CategoryController.java
-│   ├── OrderController.java
-│   ├── ProductController.java
-│   └── UserController.java
-├── dto/                     # Classes de Transferência de Dados e Validações
-├── entities/                # Classes de domínio e mapeamento ORM (JPA)
-├── projections/             # Interfaces de projeção de dados (SQL Nativo)
-├── repositories/            # Interfaces de persistência com Spring Data JPA
-├── services/
-│   ├── exceptions/          # Exceções de negócio customizadas
-│   ├── AuthService.java
-│   ├── CategoryService.java
-│   ├── OrderService.java
-│   ├── ProductService.java
-│   └── UserService.java
-├── DscommerceApplication.java # Classe principal de inicialização
-└── resources/
-    ├── application.properties
-    ├── application-test.properties
-    └── import.sql           # Script de carga inicial de dados (Seeding)
+dscommerce
+├── docker-compose.yml       # Configuração do container PostgreSQL
+├── .env.example             # Modelo de variáveis de ambiente (não versionar o .env real)
+├── pom.xml                  # Arquivo de configuração do Maven
+└── src/
+    └── main/
+        ├── java/com/josev001/dscommerce
+        │   ├── config/
+        │   │   ├── customgrant/     # Implementação customizada do Password Grant para OAuth2
+        │   │   ├── AuthorizationServerConfig.java
+        │   │   └── ResourceServerConfig.java
+        │   ├── controllers/
+        │   │   ├── handlers/        # Interceptadores globais de erro (ControllerAdvice)
+        │   │   ├── CategoryController.java
+        │   │   ├── OrderController.java
+        │   │   ├── ProductController.java
+        │   │   └── UserController.java
+        │   ├── dto/                 # Classes de Transferência de Dados e Validações
+        │   ├── entities/            # Classes de domínio e mapeamento ORM (JPA)
+        │   ├── projections/         # Interfaces de projeção de dados (SQL Nativo)
+        │   ├── repositories/        # Interfaces de persistência com Spring Data JPA
+        │   └── services/
+        │       ├── exceptions/      # Exceções de negócio customizadas
+        │       ├── AuthService.java
+        │       ├── CategoryService.java
+        │       ├── OrderService.java
+        │       ├── ProductService.java
+        │       └── UserService.java
+        │   └── DscommerceApplication.java # Classe principal de inicialização
+        └── resources/
+            ├── application.properties
+            ├── application-test.properties
+            └── import.sql           # Script de carga inicial de dados (Seeding)
 
 ```
 
@@ -102,15 +110,11 @@ O domínio da aplicação consiste nas seguintes entidades principais e seus rel
 * **Parâmetros (Form URL-Encoded):** `grant_type=password`, `username={email}`, `password={senha}`.
 * **Autenticação Basic:** Requer as credenciais do Client da aplicação (`security.client-id` e `security.client-secret`).
 
-
-
 ### Categorias
 
 * **GET** `/categories`
 * **Descrição:** Retorna a lista de todas as categorias.
 * **Autenticação:** Pública.
-
-
 
 ### Produtos
 
@@ -118,43 +122,29 @@ O domínio da aplicação consiste nas seguintes entidades principais e seus rel
 * **Descrição:** Retorna a lista de produtos de forma paginada.
 * **Parâmetros (Query):** `name` (filtro opcional), `page`, `size`, `sort`.
 * **Autenticação:** Pública.
-
-
 * **GET** `/products/{id}`
 * **Descrição:** Busca um produto pelo seu ID.
 * **Autenticação:** Pública.
-
-
 * **POST** `/products`
 * **Descrição:** Cria um novo produto.
 * **Autenticação:** Restrito a Administradores (`ROLE_ADMIN`).
 * **Corpo:** JSON com `name`, `description`, `price`, `imgUrl`, `categories`.
-
-
 * **PUT** `/products/{id}`
 * **Descrição:** Atualiza os dados de um produto existente.
 * **Autenticação:** Restrito a Administradores (`ROLE_ADMIN`).
-
-
 * **DELETE** `/products/{id}`
 * **Descrição:** Remove um produto (se não houver conflito de integridade referencial).
 * **Autenticação:** Restrito a Administradores (`ROLE_ADMIN`).
-
-
 
 ### Pedidos (Orders)
 
 * **GET** `/orders/{id}`
 * **Descrição:** Retorna os detalhes de um pedido.
 * **Autenticação:** Restrito (`ROLE_ADMIN` ou o `ROLE_CLIENT` que efetuou a compra).
-
-
 * **POST** `/orders`
 * **Descrição:** Insere um novo pedido no sistema. O status inicial é automaticamente definido como `WAITING_PAYMENT`.
 * **Autenticação:** Restrito a Clientes (`ROLE_CLIENT`).
 * **Corpo:** JSON contendo os itens do pedido (`productId`, `quantity`).
-
-
 
 ### Usuários
 
@@ -162,44 +152,82 @@ O domínio da aplicação consiste nas seguintes entidades principais e seus rel
 * **Descrição:** Recupera os dados do usuário autenticado no momento.
 * **Autenticação:** Autenticado (`ROLE_ADMIN` ou `ROLE_CLIENT`).
 
-
-
 ## Banco de Dados
 
-A aplicação está preparada para suportar bancos de dados relacionais em ambiente de produção (MySQL/PostgreSQL), onde o script de banco de dados cria automaticamente o schema no MySQL.
+A aplicação utiliza PostgreSQL como banco de dados principal em ambiente de desenvolvimento.
 
-Para desenvolvimento e testes (perfil `test` em `application-test.properties`), o projeto utiliza o banco de dados em memória **H2**.
+O banco é executado através de Docker Compose, facilitando a configuração do ambiente e garantindo que todos os desenvolvedores utilizem a mesma estrutura de banco. O arquivo `docker-compose.yml` é responsável por criar e configurar o container PostgreSQL utilizado pela aplicação, incluindo porta, banco de dados e persistência dos dados.
 
-* **Migração / Inicialização:** A aplicação utiliza a estratégia do JPA para validação e criação automática de tabelas. O arquivo `import.sql` localizado em `src/main/resources` é executado automaticamente no arranque da aplicação para realizar a carga de dados iniciais (*seeding*), criando categorias, produtos, usuários de teste e pedidos de exemplo.
+O PostgreSQL é executado por padrão na porta `5432` através do container Docker.
+
+O Hibernate/JPA realiza o mapeamento objeto-relacional das entidades e gerencia a criação/atualização do schema conforme as configurações definidas no ambiente.
+
+O arquivo `import.sql` localizado em `src/main/resources` realiza a carga inicial de dados (*seeding*), criando categorias, produtos, usuários, pedidos e pagamentos de exemplo.
+
+Para o ambiente de testes (perfil `test` em `application-test.properties`), o projeto utiliza o banco de dados em memória **H2**.
+
+## Configuração de Ambiente
+
+O projeto possui configurações específicas para os ambientes dev e test. O perfil `dev` utiliza PostgreSQL via Docker Compose, enquanto o perfil `test` utiliza H2 para testes automatizados.
+
+As credenciais do banco de dados são carregadas através de variáveis de ambiente:
+
+```properties
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+
+```
+
+Essa abordagem evita o armazenamento de informações sensíveis no código fonte e facilita a configuração em diferentes ambientes.
+
+> **Observação:** As variáveis de ambiente podem ser configuradas diretamente no sistema operacional ou através de um arquivo `.env` utilizando ferramentas compatíveis com o seu ambiente de desenvolvimento.
 
 ## Como executar
 
 1. **Clone o repositório:**
+
 ```bash
 git clone https://github.com/JoseV-001/dscommerce.git
 cd dscommerce
 
 ```
 
-
 2. **Instale as dependências:**
 Assegure-se de ter o Java 21 e o Maven instalados na sua máquina.
+
 ```bash
 mvn clean install
 
 ```
 
+3. **Configurar variáveis de ambiente:**
+Antes de executar a aplicação, configure as variáveis utilizadas para conexão com o PostgreSQL de acordo com seu sistema operacional (usando comandos como `setx` no Windows ou `export` no Linux/Mac) ou crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
-3. **Configure as propriedades da aplicação (Opcional):**
-O projeto utiliza o perfil `test` por padrão. Para modificar credenciais JWT, CORS, ou conectar a um banco externo, edite o arquivo `src/main/resources/application.properties` e defina `spring.profiles.active=dev` (ou `prod`), ajustando as propriedades adequadas.
-4. **Execute a aplicação:**
+```env
+DB_USERNAME=postgres
+DB_PASSWORD=sua_senha
+
+```
+
+Essas variáveis são utilizadas pela aplicação para autenticação no banco de dados sem expor credenciais no código.
+
+4. **Subir PostgreSQL com Docker Compose:**
+
+```bash
+docker compose up -d
+
+```
+
+O PostgreSQL será iniciado em container e estará disponível para conexão da aplicação.
+
+5. **Executar aplicação:**
+
 ```bash
 mvn spring-boot:run
 
 ```
 
-
-A aplicação subirá na porta `8080` (por padrão). O banco de dados H2 poderá ser acessado em `http://localhost:8080/h2-console`.
+A aplicação subirá no perfil `dev` na porta `8080` (por padrão).
 
 ## Como testar
 
